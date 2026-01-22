@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="Drivers/SQLite/SQL.csproj" />
+  <Project Path="API/API.csproj" />
+  <Project Path="Drivers/MariaDB/MariaDB.csproj" />
+  <Project Path="Common/Common.csproj" />
+</Solution>
