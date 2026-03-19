@@ -5,6 +5,9 @@ public class AccrualsType
 {
     private const int NameLen = 100;
     private const string NamePattern = @"^[А-ЯЁа-яёA-Za-z0-9][А-ЯЁа-яёA-Za-z0-9\s\%\.\,\-\/\(\)]+$";
+
+
+
     private string _name = string.Empty;
     public int AccrualsTypeID { get; set; }
     public string Name

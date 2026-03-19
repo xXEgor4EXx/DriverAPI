@@ -81,7 +81,7 @@ class DBProfessionEmployers : IDBProfessionEmployers
             new SqliteParameter("@ProfessionID", item.ProfessionID),
             new SqliteParameter("@Name", item.Name),
             new SqliteParameter("@DateOfStart", item.DateOfStart),
-            new SqliteParameter("@DateOfEnd", item.DateOfEnd)
+            new SqliteParameter("@DateOfEnd", (object?)item.DateOfEnd ?? DBNull.Value) 
         };
         
         DAO.Instance.ExecuteNonQuery(query, parameters);
