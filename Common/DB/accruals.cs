@@ -6,6 +6,5 @@ public class Accruals
     public int AccrualsTypeID { get; set; }
     public int WorkID{ get; set; }
     public float Bonus{get; set;}
-    public float AccrualTotal  { get; set; }
-    
+    public float AccrualTotal  { get; set; }  
 }

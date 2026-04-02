@@ -1,0 +1,16 @@
+D:\APIApp\DriverAPI\Drivers\SQLite\bin\Debug\net9.0\SQL.deps.json
+D:\APIApp\DriverAPI\Drivers\SQLite\bin\Debug\net9.0\SQL.dll
+D:\APIApp\DriverAPI\Drivers\SQLite\bin\Debug\net9.0\SQL.pdb
+D:\APIApp\DriverAPI\Drivers\SQLite\bin\Debug\net9.0\Common.dll
+D:\APIApp\DriverAPI\Drivers\SQLite\bin\Debug\net9.0\Common.pdb
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.csproj.AssemblyReference.cache
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.GeneratedMSBuildEditorConfig.editorconfig
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.AssemblyInfoInputs.cache
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.AssemblyInfo.cs
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.csproj.CoreCompileInputs.cache
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.sourcelink.json
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.csproj.Up2Date
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.dll
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\refint\SQL.dll
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\SQL.pdb
+D:\APIApp\DriverAPI\Drivers\SQLite\obj\Debug\net9.0\ref\SQL.dll

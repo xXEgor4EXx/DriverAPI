@@ -101,7 +101,6 @@ async function doLogin() {
   const password = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginErr');
   errEl.style.display = 'none';
-
   try {
     const res = await fetch(`${API}/api/auth/login`, {
       method: 'POST',
@@ -295,10 +294,19 @@ async function openAddModal() {
     }
     fWrap.appendChild(div);
   });
+  if (currentCtrl === 'CntrPayments'){
+    const empSelect = document.getElementById('mf_EmployeeID');
+    if (empSelect){
+      empSelect.addEventListener('change', () => calcPaymentAmount(empSelect.value));
+    }
+  }
 }
 
 function closeModal() {
   document.getElementById('addModal').classList.remove('open');
+  const bd = document.getElementById('payment-breakdown');
+  if(bd)
+    bd.remove();
 }
 
 async function submitAdd() {
@@ -345,6 +353,127 @@ async function submitAdd() {
   }
 }
 
+async function calcPaymentAmount(employeeID) {
+  if (!employeeID)
+    return;
+  const amountInput = document.getElementById('mf_AmountToPay');
+  if (!amountInput)
+    return;
+  amountInput.value = '';
+  amountInput.placeholder = 'Производится расчет...';
+
+  try{
+    const [allWorks, allAccruals, allAccrualsTypes] = await Promise.all([
+      apiFetch('CntrWorks'),
+      apiFetch('CntrAccruals'),
+      apiFetch('CntrAccrualsType')
+    ]);
+    const empId = parseInt(employeeID, 10);
+    const empWorks = (allWorks || []).filter(w => w.employeeID === empId);
+    const empWorkIds = new Set(empWorks.map(w => w.workID));
+    if (empWorkIds.size === 0){
+      amountInput.placeholder = 'Нет работ, введите вручную';
+      return;
+    }
+    const typeMap = {};
+  (allAccrualsTypes || []).forEach(t => {
+    typeMap[t.accrualsTypeID] = t.position;
+   });
+   let total = 0;
+   const breakdown = [];
+   empAccruals.forEach(a => {
+    const position = typeMap[a.accrualsTypeID] ?? 1;
+    const sum = (a.accrualTotal || 0) + (a.bonus || 0);
+    total += position * sum;
+    breakdown.push({position, sum, total: position * sum});
+   });
+   total = Math.max(0, total);
+
+   amountInput.value = total.toFixed(2);
+   amountInput.placeholder = '0';
+   showPaymentBreakdown(empAccruals, allAccrualsTypes, typeMap)
+  }
+  catch(e){
+    amountInput.placeholder = 'Ошибка расчета'
+  }
+}
+
+function showPaymentBreakdown(accruals, types, typeMap){
+  const old = document.getElementById('payment-breakdown');
+  if (old) old.remove();
+  const typeNames = {};
+  (types || []).forEach(t => {typeNames[t.accrualsTypeID] = t.name; });
+  const breakdown = document.createElement('div');
+  breakdown.id = 'payment-breakdown';
+  breakdown.style.cssText = `
+  margin-top: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  `;
+
+  let html = '<div style="color:var(--text3);margin-bottom:6px;letter-spacing:0.5px">Расшифровка Начислений</div>';
+
+  let total = 0;
+  accruals.forEach(a => {
+    const pos = typeMap[a.accrualsTypeID] ?? 1;
+    const sum = (a.accrualTotal || 0) + (a.bonus || 0);
+    const delta = pos * sum;
+    total += delta;
+    const color = pos >= 0 ? 'var(--accent2)' : 'var(--accent3)';
+    const sign = pos >= 0 ? '+' : '-';
+    const name = typeNames[a.accrualsTypeID] || `Тип #${a.accrualsTypeID}`;
+    html += `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(48,54,61,0.5)">
+    <span style="color:var(--text2)">${name}</span>
+    <span style="color:${color}">${sign} ${sum.toFixed(2)} ₽</span>
+    </div>`;
+    breakdown.innerHTML = html;
+    const amountField = document.getElementById('mf_AmountToPay');
+    if (amountField)
+       amountField.closest('.modal-field').after(breakdown);
+    })
+};
+
+async function submitAdd() {
+  const fields = FIELDS[currentCtrl];
+  const body = {};
+  for (const f of fields) {
+    const el = document.getElementById(`mf_${f.key}`);
+    let val = el ? el.value.trim() : '';
+    if (f.optional && val === '')
+       continue;
+
+    if (f.type === 'select') {
+      if (!val) { notify(`Выберите «${f.label}»`, 'error'); return; }
+      body[f.key] = parseInt(val, 10);
+    } 
+    else if (f.type === 'number') {
+      if (val === '' && !f.optional) { notify(`Заполните поле «${f.label}»`, 'error'); return; }
+      body[f.key] = parseFloat(val) || 0;
+    } 
+    else if (f.type === 'date') {
+      if (val === '' && !f.optional) { notify(`Заполните поле «${f.label}»`, 'error'); return; }
+      body[f.key] = val ? new Date(val).toISOString() : null;
+    } 
+    else {
+      if (!val && !f.optional) { notify(`Заполните поле «${f.label}»`, 'error'); return; }
+      body[f.key] = val;
+    }
+  }
+  try {
+    await apiFetch(currentCtrl, 'POST', body);
+    closeModal();
+    notify('Запись добавлена', 'success');
+    loadTable(currentCtrl, null);
+  }
+  catch(e) {
+    notify('Ошибка: ' + e.message, 'error');
+  }
+}
+
 // Переключение вкладок
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -384,4 +513,4 @@ document.getElementById('addModal').addEventListener('click', function(e) {
       firstItem.click();
     }
   }
-})();
+});
