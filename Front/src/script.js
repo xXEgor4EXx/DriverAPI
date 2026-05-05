@@ -6,6 +6,7 @@ let accessToken = '';
 let refreshToken = '';
 let currentCtrl = '';
 let currentData = [];
+let editingRowId = null; // Для редактирования
 
 // Определения полей для каждого контроллера
 const FIELDS = {
@@ -114,9 +115,9 @@ async function doLogin() {
     const data = await res.json();
     accessToken = data.accessToken;
     refreshToken = data.refreshToken;
-    sessionStorage.setItem('accessToken', accessToken);
-    sessionStorage.setItem('refreshToken', refreshToken);
-    sessionStorage.setItem('userEmail', email);
+    localStorage.setItem('accessToken', accessToken);
+    localStorage.setItem('refreshToken', refreshToken);
+    localStorage.setItem('userEmail', email);
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('appPage').style.display = 'flex';
     const firstItem = document.querySelector('.sidebar-item[data-ctrl]');
@@ -138,7 +139,7 @@ document.addEventListener('keydown', e => {
 function doLogout() {
   accessToken = '';
   refreshToken = '';
-  sessionStorage.clear();
+  localStorage.clear();
   document.getElementById('appPage').style.display = 'none';
   document.getElementById('loginPage').style.display = 'flex';
   document.getElementById('loginEmail').value = '';
@@ -221,7 +222,8 @@ function renderTable(data) {
       html += `<td class="${cls}" title="${String(val).replace(/"/g, "'")}">${val}</td>`;
     });
     const idVal = row[keys[0]];
-    html += `<td><div class="row-actions"><button class="btn-del" onclick="deleteRow('${currentCtrl}', ${idVal})">✕ Удалить</button></div></td>`;
+    const rowDataStr = JSON.stringify(row).replace(/'/g, "\\'");
+    html += `<td><div class="row-actions"><button class="btn-edit" onclick="editRow('${currentCtrl}', ${idVal})">✎ Изменить</button><button class="btn-del" onclick="deleteRow('${currentCtrl}', ${idVal})">✕ Удалить</button></div></td>`;
     html += '</tr>';
   });
   html += '</tbody></table>';
@@ -249,12 +251,30 @@ async function deleteRow(ctrl, id) {
   }
 }
 
+function editRow(ctrl, id) {
+  console.log('editRow called:', ctrl, id, 'currentData:', currentData);
+  const firstKey = Object.keys(currentData[0] || {})[0];
+  const rowData = currentData.find(row => {
+    const rowId = row[firstKey];
+    console.log('Comparing:', rowId, '===', id, '?', rowId === id);
+    return rowId == id; // Используем == вместо ===
+  });
+  if (rowData) {
+    console.log('Found rowData:', rowData);
+    openEditModal(ctrl, rowData);
+  } else {
+    notify('Запись не найдена', 'error');
+    console.log('Row not found');
+  }
+}
+
 // Модальное окно добавления
 async function openAddModal() {
   if (!currentCtrl) {
     notify('Выберите таблицу', 'error');
     return;
   }
+  editingRowId = null; // Это добавление, не редактирование
   const fields = FIELDS[currentCtrl];
   if (!fields) {
     notify('Форма для этой таблицы не настроена', 'error');
@@ -302,11 +322,71 @@ async function openAddModal() {
   }
 }
 
+async function openEditModal(ctrl, rowData) {
+  currentCtrl = ctrl;
+  editingRowId = rowData[Object.keys(rowData)[0]]; // Первое поле - ID
+  
+  const fields = FIELDS[ctrl];
+  if (!fields) {
+    notify('Форма для этой таблицы не настроена', 'error');
+    return;
+  }
+
+  document.getElementById('modalTitle').textContent = 'Изменить — ' + (TITLES[ctrl] || ctrl);
+  const fWrap = document.getElementById('modalFields');
+  fWrap.innerHTML = '<div style="color:var(--text3);font-family:\'IBM Plex Mono\',monospace;font-size:12px;padding:8px 0">Загрузка формы...</div>';
+  document.getElementById('addModal').classList.add('open');
+
+  const selectFields = fields.filter(f => f.type === 'select');
+  const selectData = {};
+  await Promise.all(selectFields.map(async f => {
+    try {
+      selectData[f.key] = await apiFetch(f.source);
+    } catch {
+      selectData[f.key] = [];
+    }
+  }));
+
+  fWrap.innerHTML = '';
+  fields.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'modal-field';
+    const optLabel = f.optional ? ' <span style="color:var(--text3)">(необяз.)</span>' : '';
+    const currentValue = rowData[f.key] !== undefined ? rowData[f.key] : '';
+
+    if (f.type === 'select') {
+      const rows = selectData[f.key] || [];
+      const opts = rows.length === 0
+        ? '<option value="" disabled>— нет записей —</option>'
+        : rows.map(r => `<option value="${r[f.valueKey]}" ${r[f.valueKey] == currentValue ? 'selected' : ''}>${f.labelFn(r)}</option>`).join('');
+      div.innerHTML = `<label>${f.label}${optLabel}</label><select id="mf_${f.key}"><option value="">— выберите —</option>${opts}</select>`;
+    } else if (f.type === 'date') {
+      let dateVal = '';
+      if (currentValue) {
+        const d = new Date(currentValue);
+        dateVal = d.toISOString().split('T')[0];
+      }
+      div.innerHTML = `<label>${f.label}${optLabel}</label><input type="date" id="mf_${f.key}" value="${dateVal}" autocomplete="off"/>`;
+    } else {
+      div.innerHTML = `<label>${f.label}${optLabel}</label>`
+        + `<input type="${f.type || 'text'}" id="mf_${f.key}" placeholder="${f.placeholder || ''}" value="${String(currentValue).replace(/"/g, '&quot;')}" autocomplete="off"/>`;
+    }
+    fWrap.appendChild(div);
+  });
+  
+  if (ctrl === 'CntrPayments'){
+    const empSelect = document.getElementById('mf_EmployeeID');
+    if (empSelect){
+      empSelect.addEventListener('change', () => calcPaymentAmount(empSelect.value));
+    }
+  }
+}
+
 function closeModal() {
   document.getElementById('addModal').classList.remove('open');
   const bd = document.getElementById('payment-breakdown');
-  if(bd)
-    bd.remove();
+  if(bd) bd.remove();
+  editingRowId = null;
 }
 
 async function submitAdd() {
@@ -344,9 +424,16 @@ async function submitAdd() {
     }
   }
   try {
-    await apiFetch(currentCtrl, 'POST', body);
+    if (editingRowId !== null) {
+      // Редактирование
+      await apiFetch(`${currentCtrl}?id=${editingRowId}`, 'PUT', body);
+      notify('Запись обновлена', 'success');
+    } else {
+      // Добавление
+      await apiFetch(currentCtrl, 'POST', body);
+      notify('Запись добавлена', 'success');
+    }
     closeModal();
-    notify('Запись добавлена', 'success');
     loadTable(currentCtrl, null);
   } catch (e) {
     notify('Ошибка: ' + e.message, 'error');
@@ -363,42 +450,74 @@ async function calcPaymentAmount(employeeID) {
   amountInput.placeholder = 'Производится расчет...';
 
   try{
-    const [allWorks, allAccruals, allAccrualsTypes] = await Promise.all([
+    const [allWorks, allOperations, allAccruals, allAccrualsTypes] = await Promise.all([
       apiFetch('CntrWorks'),
+      apiFetch('CntrOperations'),
       apiFetch('CntrAccruals'),
       apiFetch('CntrAccrualsType')
     ]);
     const empId = parseInt(employeeID, 10);
     const empWorks = (allWorks || []).filter(w => w.employeeID === empId);
     const empWorkIds = new Set(empWorks.map(w => w.workID));
+    
     if (empWorkIds.size === 0){
       amountInput.placeholder = 'Нет работ, введите вручную';
       return;
     }
+    
+    // Создаём карту операций для быстрого доступа
+    const operationMap = {};
+    (allOperations || []).forEach(op => {
+      operationMap[op.operationID] = op;
+    });
+    
     const typeMap = {};
-  (allAccrualsTypes || []).forEach(t => {
-    typeMap[t.accrualsTypeID] = t.position;
-   });
-   let total = 0;
-   const breakdown = [];
-   empAccruals.forEach(a => {
-    const position = typeMap[a.accrualsTypeID] ?? 1;
-    const sum = (a.accrualTotal || 0) + (a.bonus || 0);
-    total += position * sum;
-    breakdown.push({position, sum, total: position * sum});
-   });
-   total = Math.max(0, total);
+    (allAccrualsTypes || []).forEach(t => {
+      typeMap[t.accrualsTypeID] = t.position;
+    });
+    
+    // Рассчитываем выплату за выполненные работы (с учётом брака)
+    let workPayment = 0;
+    const workBreakdown = [];
+    empWorks.forEach(work => {
+      const operation = operationMap[work.operationID];
+      if (!operation) return;
+      
+      const acceptedQuantity = work.quantity - work.rejectedQuantity;
+      const payment = acceptedQuantity * operation.ratePerUnit;
+      workPayment += payment;
+      workBreakdown.push({
+        work,
+        operation,
+        acceptedQuantity,
+        payment
+      });
+    });
+    
+    // Получаем все начисления (бонусы, налоги и т.д.)
+    const empAccruals = (allAccruals || []).filter(a => empWorkIds.has(a.workID));
+    
+    let total = workPayment;
+    empAccruals.forEach(a => {
+      const position = typeMap[a.accrualsTypeID] ?? 1;
+      const bonus = a.bonus || 0;
+      const accrualSum = (a.accrualTotal || 0) + bonus;
+      total += position * accrualSum;
+    });
+    
+    total = Math.max(0, total);
 
-   amountInput.value = total.toFixed(2);
-   amountInput.placeholder = '0';
-   showPaymentBreakdown(empAccruals, allAccrualsTypes, typeMap)
+    amountInput.value = total.toFixed(2);
+    amountInput.placeholder = '0';
+    showPaymentBreakdown(workBreakdown, empAccruals, allAccrualsTypes, typeMap, workPayment)
   }
   catch(e){
+    console.error(e);
     amountInput.placeholder = 'Ошибка расчета'
   }
 }
 
-function showPaymentBreakdown(accruals, types, typeMap){
+function showPaymentBreakdown(workBreakdown, accruals, types, typeMap, workPayment){
   const old = document.getElementById('payment-breakdown');
   if (old) old.remove();
   const typeNames = {};
@@ -413,66 +532,57 @@ function showPaymentBreakdown(accruals, types, typeMap){
   padding: 10px 12px;
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
+  max-height: 300px;
+  overflow-y: auto;
   `;
 
-  let html = '<div style="color:var(--text3);margin-bottom:6px;letter-spacing:0.5px">Расшифровка Начислений</div>';
+  let html = '<div style="color:var(--text3);margin-bottom:6px;letter-spacing:0.5px;font-weight:bold">📋 Расшифровка Выплаты</div>';
 
-  let total = 0;
+  // Раздел работ
+  html += '<div style="border-bottom:1px solid rgba(48,54,61,0.7);padding-bottom:6px;margin-bottom:6px">';
+  html += '<div style="color:var(--text2);font-size:10px;margin-bottom:4px">Работы:</div>';
+  workBreakdown.forEach(wb => {
+    const rejected = wb.work.rejectedQuantity || 0;
+    html += `<div style="display:flex;justify-content:space-between;padding:1px 0;font-size:10px">
+    <span style="color:var(--text3)">${wb.work.quantity - rejected}/${wb.work.quantity} × ${wb.operation.ratePerUnit}₽</span>
+    <span style="color:var(--accent2)">+${wb.payment.toFixed(2)}₽</span>
+    </div>`;
+    if (rejected > 0) {
+      html += `<div style="display:flex;justify-content:space-between;padding:1px 0;font-size:9px;color:var(--accent3)">
+      <span>   (брак: ${rejected})</span>
+      </div>`;
+    }
+  });
+  html += '</div>';
+
+  // Раздел начислений/вычитаний
+  let total = workPayment;
   accruals.forEach(a => {
     const pos = typeMap[a.accrualsTypeID] ?? 1;
-    const sum = (a.accrualTotal || 0) + (a.bonus || 0);
-    const delta = pos * sum;
+    const bonus = a.bonus || 0;
+    const accrualSum = (a.accrualTotal || 0) + bonus;
+    const delta = pos * accrualSum;
     total += delta;
     const color = pos >= 0 ? 'var(--accent2)' : 'var(--accent3)';
-    const sign = pos >= 0 ? '+' : '-';
+    const sign = pos >= 0 ? '+' : '';
     const name = typeNames[a.accrualsTypeID] || `Тип #${a.accrualsTypeID}`;
     html += `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid rgba(48,54,61,0.5)">
     <span style="color:var(--text2)">${name}</span>
-    <span style="color:${color}">${sign} ${sum.toFixed(2)} ₽</span>
+    <span style="color:${color}">${sign}${delta.toFixed(2)}₽</span>
     </div>`;
-    breakdown.innerHTML = html;
-    const amountField = document.getElementById('mf_AmountToPay');
-    if (amountField)
-       amountField.closest('.modal-field').after(breakdown);
-    })
-};
-
-async function submitAdd() {
-  const fields = FIELDS[currentCtrl];
-  const body = {};
-  for (const f of fields) {
-    const el = document.getElementById(`mf_${f.key}`);
-    let val = el ? el.value.trim() : '';
-    if (f.optional && val === '')
-       continue;
-
-    if (f.type === 'select') {
-      if (!val) { notify(`Выберите «${f.label}»`, 'error'); return; }
-      body[f.key] = parseInt(val, 10);
-    } 
-    else if (f.type === 'number') {
-      if (val === '' && !f.optional) { notify(`Заполните поле «${f.label}»`, 'error'); return; }
-      body[f.key] = parseFloat(val) || 0;
-    } 
-    else if (f.type === 'date') {
-      if (val === '' && !f.optional) { notify(`Заполните поле «${f.label}»`, 'error'); return; }
-      body[f.key] = val ? new Date(val).toISOString() : null;
-    } 
-    else {
-      if (!val && !f.optional) { notify(`Заполните поле «${f.label}»`, 'error'); return; }
-      body[f.key] = val;
-    }
-  }
-  try {
-    await apiFetch(currentCtrl, 'POST', body);
-    closeModal();
-    notify('Запись добавлена', 'success');
-    loadTable(currentCtrl, null);
-  }
-  catch(e) {
-    notify('Ошибка: ' + e.message, 'error');
-  }
+  });
+  
+  html += `<div style="display:flex;justify-content:space-between;padding:4px 0;margin-top:6px;font-weight:bold;color:var(--accent)">
+  <span>💰 К ВЫДАЧЕ</span>
+  <span>${Math.max(0, total).toFixed(2)}₽</span>
+  </div>`;
+  
+  breakdown.innerHTML = html;
+  const amountField = document.getElementById('mf_AmountToPay');
+  if (amountField)
+    amountField.closest('.modal-field').after(breakdown);
 }
+
 
 // Переключение вкладок
 function switchTab(tab, btn) {
@@ -500,9 +610,9 @@ document.getElementById('addModal').addEventListener('click', function(e) {
 
 // Восстановление сессии
 (function restoreSession() {
-  const savedAccess = sessionStorage.getItem('accessToken');
-  const savedRefresh = sessionStorage.getItem('refreshToken');
-  const savedEmail = sessionStorage.getItem('userEmail');
+  const savedAccess = localStorage.getItem('accessToken');
+  const savedRefresh = localStorage.getItem('refreshToken');
+  const savedEmail = localStorage.getItem('userEmail');
   if (savedAccess) {
     accessToken = savedAccess;
     refreshToken = savedRefresh || '';
@@ -513,4 +623,4 @@ document.getElementById('addModal').addEventListener('click', function(e) {
       firstItem.click();
     }
   }
-});
+})();

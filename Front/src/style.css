@@ -471,6 +471,23 @@ tbody td {
   gap: 6px;
 }
 
+.btn-edit {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text3);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'IBM Plex Mono', monospace;
+  transition: border-color 0.12s, color 0.12s;
+}
+
+.btn-edit:hover {
+  border-color: var(--accent4);
+  color: var(--accent4);
+}
+
 .btn-del {
   background: transparent;
   border: 1px solid transparent;

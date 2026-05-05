@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "D:\\APIApp\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj": {}
+    "G:\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj": {}
   },
   "projects": {
-    "D:\\APIApp\\DriverAPI\\Common\\Common.csproj": {
+    "G:\\DriverAPI\\Common\\Common.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\APIApp\\DriverAPI\\Common\\Common.csproj",
+        "projectUniqueName": "G:\\DriverAPI\\Common\\Common.csproj",
         "projectName": "Common",
-        "projectPath": "D:\\APIApp\\DriverAPI\\Common\\Common.csproj",
-        "packagesPath": "C:\\Users\\id301is\\.nuget\\packages\\",
-        "outputPath": "D:\\APIApp\\DriverAPI\\Common\\obj\\",
+        "projectPath": "G:\\DriverAPI\\Common\\Common.csproj",
+        "packagesPath": "C:\\Users\\Egor\\.nuget\\packages\\",
+        "outputPath": "G:\\DriverAPI\\Common\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\id301is\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Egor\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -54,39 +56,55 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\APIApp\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj": {
+    "G:\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\APIApp\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj",
+        "projectUniqueName": "G:\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj",
         "projectName": "MariaDB",
-        "projectPath": "D:\\APIApp\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj",
-        "packagesPath": "C:\\Users\\id301is\\.nuget\\packages\\",
-        "outputPath": "D:\\APIApp\\DriverAPI\\Drivers\\MariaDB\\obj\\",
+        "projectPath": "G:\\DriverAPI\\Drivers\\MariaDB\\MariaDB.csproj",
+        "packagesPath": "C:\\Users\\Egor\\.nuget\\packages\\",
+        "outputPath": "G:\\DriverAPI\\Drivers\\MariaDB\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\id301is\\AppData\\Roaming\\NuGet\\NuGet.Config"
+          "C:\\Users\\Egor\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net9.0": {
             "targetAlias": "net9.0",
             "projectReferences": {
-              "D:\\APIApp\\DriverAPI\\Common\\Common.csproj": {
-                "projectPath": "D:\\APIApp\\DriverAPI\\Common\\Common.csproj"
+              "G:\\DriverAPI\\Common\\Common.csproj": {
+                "projectPath": "G:\\DriverAPI\\Common\\Common.csproj"
               }
             }
           }
@@ -131,12 +149,26 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            },
+            {
+              "name": "Microsoft.WindowsDesktop.App.Ref",
+              "version": "[9.0.13, 9.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.101/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.103/PortableRuntimeIdentifierGraph.json"
         }
       }
     }

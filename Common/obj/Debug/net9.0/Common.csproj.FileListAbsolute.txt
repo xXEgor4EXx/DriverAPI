@@ -10,3 +10,15 @@ D:\APIApp\DriverAPI\Common\obj\Debug\net9.0\Common.dll
 D:\APIApp\DriverAPI\Common\obj\Debug\net9.0\refint\Common.dll
 D:\APIApp\DriverAPI\Common\obj\Debug\net9.0\Common.pdb
 D:\APIApp\DriverAPI\Common\obj\Debug\net9.0\ref\Common.dll
+G:\DriverAPI\Common\bin\Debug\net9.0\Common.deps.json
+G:\DriverAPI\Common\bin\Debug\net9.0\Common.dll
+G:\DriverAPI\Common\bin\Debug\net9.0\Common.pdb
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.GeneratedMSBuildEditorConfig.editorconfig
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.AssemblyInfoInputs.cache
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.AssemblyInfo.cs
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.csproj.CoreCompileInputs.cache
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.sourcelink.json
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.dll
+G:\DriverAPI\Common\obj\Debug\net9.0\refint\Common.dll
+G:\DriverAPI\Common\obj\Debug\net9.0\Common.pdb
+G:\DriverAPI\Common\obj\Debug\net9.0\ref\Common.dll
