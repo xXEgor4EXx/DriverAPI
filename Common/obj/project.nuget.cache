@@ -1,12 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "bQ1p4gaJGos=",
+  "dgSpecHash": "v0g6DwkeYZM=",
   "success": true,
-  "projectFilePath": "G:\\DriverAPI\\Common\\Common.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\Egor\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.13\\microsoft.netcore.app.ref.9.0.13.nupkg.sha512",
-    "C:\\Users\\Egor\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.13\\microsoft.windowsdesktop.app.ref.9.0.13.nupkg.sha512",
-    "C:\\Users\\Egor\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.13\\microsoft.aspnetcore.app.ref.9.0.13.nupkg.sha512"
-  ],
+  "projectFilePath": "D:\\APIApp\\DriverAPI\\Common\\Common.csproj",
+  "expectedPackageFiles": [],
   "logs": []
 }

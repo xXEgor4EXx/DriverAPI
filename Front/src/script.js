@@ -156,12 +156,34 @@ async function apiFetch(url, method = 'GET', body = null) {
     }
   };
   if (body !== null) opts.body = JSON.stringify(body);
-  const res = await fetch(`${API}/${url}`, opts);
+  
+  // ДЕТАЛЬНОЕ ЛОГИРОВАНИЕ
+  const fullUrl = `${API}/${url}`;
+  console.log(' API Request:', {
+    url: fullUrl,
+    method,
+    body: body,
+    bodyString: opts.body,
+    headers: opts.headers
+  });
+  
+  const res = await fetch(fullUrl, opts);
+  
+  console.log(' API Response:', {
+    status: res.status,
+    statusText: res.statusText,
+    ok: res.ok
+  });
+  
   if (!res.ok) {
-    const msg = await res.text().catch(() => res.status);
-    throw new Error(msg || res.status);
+    const text = await res.text();
+    console.error('API Error Response:', text);
+    throw new Error(`${res.status}: ${text.substring(0, 200)}`);
   }
+  
   const text = await res.text();
+  console.log('API Success Response:', text);
+  
   if (!text || text.trim() === '') return null;
   return JSON.parse(text);
 }
@@ -223,7 +245,7 @@ function renderTable(data) {
     });
     const idVal = row[keys[0]];
     const rowDataStr = JSON.stringify(row).replace(/'/g, "\\'");
-    html += `<td><div class="row-actions"><button class="btn-edit" onclick="editRow('${currentCtrl}', ${idVal})">✎ Изменить</button><button class="btn-del" onclick="deleteRow('${currentCtrl}', ${idVal})">✕ Удалить</button></div></td>`;
+    html += `<td><div class="row-actions"><button class="btn-edit" onclick="editRow('${currentCtrl}', ${idVal})">Изменить</button><button class="btn-del" onclick="deleteRow('${currentCtrl}', ${idVal})">✕ Удалить</button></div></td>`;
     html += '</tr>';
   });
   html += '</tbody></table>';
@@ -257,7 +279,7 @@ function editRow(ctrl, id) {
   const rowData = currentData.find(row => {
     const rowId = row[firstKey];
     console.log('Comparing:', rowId, '===', id, '?', rowId === id);
-    return rowId == id; // Используем == вместо ===
+    return rowId == id; 
   });
   if (rowData) {
     console.log('Found rowData:', rowData);
@@ -396,46 +418,60 @@ async function submitAdd() {
     const el = document.getElementById(`mf_${f.key}`);
     let val = el ? el.value.trim() : '';
     if (f.optional && val === '') continue;
-
+    let keyName = f.key.charAt(0).toLowerCase() + f.key.slice(1);
+    
     if (f.type === 'select') {
       if (!val) {
         notify(`Выберите «${f.label}»`, 'error');
         return;
       }
-      body[f.key] = parseInt(val, 10);
+      body[keyName] = parseInt(val, 10);
     } else if (f.type === 'number') {
       if (val === '' && !f.optional) {
         notify(`Заполните поле «${f.label}»`, 'error');
         return;
       }
-      body[f.key] = parseFloat(val) || 0;
+      body[keyName] = parseFloat(val) || 0;
     } else if (f.type === 'date') {
       if (val === '' && !f.optional) {
         notify(`Заполните поле «${f.label}»`, 'error');
         return;
       }
-      body[f.key] = val ? new Date(val).toISOString() : null;
+      body[keyName] = val ? new Date(val).toISOString() : null;
     } else {
       if (!val && !f.optional) {
         notify(`Заполните поле «${f.label}»`, 'error');
         return;
       }
-      body[f.key] = val;
+      body[keyName] = val;
     }
   }
-  try {
+  
+  console.log('Submit data:', {
+    editingRowId,
+    currentCtrl,
+    body,  // Теперь ключи будут с маленькой буквы
+    url: `${currentCtrl}?id=${editingRowId}`
+  });
+  
+    try {
     if (editingRowId !== null) {
-      // Редактирование
+      const firstKey = Object.keys(currentData[0] || {})[0];
+      body[firstKey] = editingRowId;
+      
+      console.log('Sending PUT request with ID in body:', body);
       await apiFetch(`${currentCtrl}?id=${editingRowId}`, 'PUT', body);
       notify('Запись обновлена', 'success');
     } else {
       // Добавление
+      console.log('➕ Sending POST request:', body);
       await apiFetch(currentCtrl, 'POST', body);
       notify('Запись добавлена', 'success');
     }
     closeModal();
     loadTable(currentCtrl, null);
   } catch (e) {
+    console.error('Submit error:', e);
     notify('Ошибка: ' + e.message, 'error');
   }
 }
