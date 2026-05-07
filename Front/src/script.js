@@ -342,6 +342,19 @@ async function openAddModal() {
       empSelect.addEventListener('change', () => calcPaymentAmount(empSelect.value));
     }
   }
+  if (currentCtrl === 'CntrAccruals') {
+    const workSelect = document.getElementById('mf_WorkID');
+    const typeSelect = document.getElementById('mf_AccrualsTypeID');
+  
+    const recalc = () => {
+      if (workSelect.value && typeSelect.value) {
+        calcAccrualTotal(workSelect.value, typeSelect.value);
+      }
+    };
+  
+    if (workSelect) workSelect.addEventListener('change', recalc);
+    if (typeSelect) typeSelect.addEventListener('change', recalc);
+  }
 }
 
 async function openEditModal(ctrl, rowData) {
@@ -402,6 +415,19 @@ async function openEditModal(ctrl, rowData) {
       empSelect.addEventListener('change', () => calcPaymentAmount(empSelect.value));
     }
   }
+  if (currentCtrl === 'CntrAccruals') {
+  const workSelect = document.getElementById('mf_WorkID');
+  const typeSelect = document.getElementById('mf_AccrualsTypeID');
+  
+  const recalc = () => {
+    if (workSelect.value && typeSelect.value) {
+      calcAccrualTotal(workSelect.value, typeSelect.value);
+    }
+  };
+  
+  if (workSelect) workSelect.addEventListener('change', recalc);
+  if (typeSelect) typeSelect.addEventListener('change', recalc);
+  }
 }
 
 function closeModal() {
@@ -450,7 +476,7 @@ async function submitAdd() {
   console.log('Submit data:', {
     editingRowId,
     currentCtrl,
-    body,  // Теперь ключи будут с маленькой буквы
+    body, 
     url: `${currentCtrl}?id=${editingRowId}`
   });
   
@@ -473,6 +499,63 @@ async function submitAdd() {
   } catch (e) {
     console.error('Submit error:', e);
     notify('Ошибка: ' + e.message, 'error');
+  }
+}
+
+// Функция расчета суммы начисления
+async function calcAccrualTotal(workID, accrualsTypeID) {
+  if (!workID || !accrualsTypeID) return;
+  
+  const accrualTotalInput = document.getElementById('mf_AccrualTotal');
+  if (!accrualTotalInput) return;
+  
+  accrualTotalInput.value = '';
+  accrualTotalInput.placeholder = 'Расчет...';
+  
+  try {
+    const [allWorks, allOperations, allAccrualsTypes] = await Promise.all([
+      apiFetch('CntrWorks'),
+      apiFetch('CntrOperations'),
+      apiFetch('CntrAccrualsType')
+    ]);
+    
+    const work = allWorks.find(w => w.workID == workID);
+    if (!work) {
+      accrualTotalInput.placeholder = 'Работа не найдена';
+      return;
+    }
+    
+    const operation = allOperations.find(op => op.operationID == work.operationID);
+    if (!operation) {
+      accrualTotalInput.placeholder = 'Операция не найдена';
+      return;
+    }
+    
+    const accrualType = allAccrualsTypes.find(t => t.accrualsTypeID == accrualsTypeID);
+    if (!accrualType) {
+      accrualTotalInput.placeholder = 'Тип не найден';
+      return;
+    }
+    
+    // Расчет оплаты за работу (годные детали)
+    const acceptedQuantity = work.quantity - (work.rejectedQuantity || 0);
+    const workPayment = acceptedQuantity * operation.ratePerUnit;
+    
+    let suggestedTotal = 0;
+
+    if (accrualType.position === 1) {
+      suggestedTotal = workPayment;
+    } else if (accrualType.position === -1) {
+      suggestedTotal = -workPayment * 0.13;  // 13% налог
+    }
+    
+    // Округляем до 2 знаков
+    accrualTotalInput.value = Math.abs(suggestedTotal).toFixed(2);
+    accrualTotalInput.placeholder = '0';
+    
+  } catch (e) {
+    console.error(e);
+    accrualTotalInput.placeholder = 'Ошибка';
   }
 }
 
