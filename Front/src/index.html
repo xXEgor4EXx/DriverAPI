@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>АРМ Бухгалтера-расчётчика</title>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="stickers/logo1.png" alt="logo" style="width:22px;height:22px;object-fit:contain;" onerror="this.style.display='none'"/>
+      <span class="login-title">АРМ Расчётчика</span>
+    </div>
+    <div class="login-sub">Система учёта заработной платы</div>
+    <div class="field-wrap">
+      <div class="field-label">EMAIL</div>
+      <input type="text" id="loginEmail" placeholder="user@company.ru" autocomplete="off"/>
+    </div>
+    <div class="field-wrap">
+      <div class="field-label">ПАРОЛЬ</div>
+      <input type="password" id="loginPassword" placeholder="••••••••"/>
+    </div>
+    <button class="btn-primary" onclick="doLogin()">ВОЙТИ В СИСТЕМУ</button>
+    <div id="loginErr">Неверный логин или пароль</div>
+  </div>
+</div>
+
+<div id="appPage">
+  <div class="topbar">
+    <img src="stickers/logo1.png" alt="" class="sticker-icon" style="width:20px;height:20px;object-fit:contain;"/>
+    <span class="topbar-logo">АРМ Бухгалтера-расчётчика</span>
+    <div class="topbar-sep"></div>
+    <button class="btn-logout" onclick="doLogout()">ВЫЙТИ</button>
+  </div>
+
+  <div class="tabs-bar">
+    <button class="tab-btn active" data-tab="main" onclick="switchTab('main', this)">
+      <span class="tab-dot" style="background:#58a6ff"></span>Рабочий стол
+    </button>
+    <button class="tab-btn" data-tab="reports" onclick="switchTab('reports', this)">
+      <span class="tab-dot" style="background:#3fb950"></span>Отчёты
+    </button>
+  </div>
+
+  <div class="app-body">
+    <div class="sidebar">
+      <div id="sidebarMain" class="sidebar-section">
+        <div class="sidebar-head">Учёт</div>
+        <div class="sidebar-item active" data-ctrl="CntrEmployers" onclick="loadTable('CntrEmployers', this)">
+          <img src="stickers/employees.png" alt="" class="icon sticker-icon"/> Сотрудники
+        </div>
+        <div class="sidebar-item" data-ctrl="CntrWorks" onclick="loadTable('CntrWorks', this)">
+          <img src="stickers/works.png" alt="" class="icon sticker-icon"/> Работы
+        </div>
+        <div class="sidebar-item" data-ctrl="CntrAccruals" onclick="loadTable('CntrAccruals', this)">
+          <img src="stickers/accruals.png" alt="" class="icon sticker-icon"/> Начисления
+        </div>
+        <div class="sidebar-item" data-ctrl="CntrPayments" onclick="loadTable('CntrPayments', this)">
+          <img src="stickers/payments.png" alt="" class="icon sticker-icon"/> Выплаты
+        </div>
+        <div class="divider"></div>
+        <div class="sidebar-head">Справочники</div>
+        <div class="sidebar-item" data-ctrl="CntrProfessions" onclick="loadTable('CntrProfessions', this)">
+          <img src="stickers/professions.png" alt="" class="icon sticker-icon"/> Профессии
+        </div>
+        <div class="sidebar-item" data-ctrl="CntrProfessionEmployer" onclick="loadTable('CntrProfessionEmployer', this)">
+          <img src="stickers/assign.png" alt="" class="icon sticker-icon"/> Проф. назначения
+        </div>
+        <div class="sidebar-item" data-ctrl="CntrOperations" onclick="loadTable('CntrOperations', this)">
+          <img src="stickers/operations.png" alt="" class="icon sticker-icon"/> Операции
+        </div>
+        <div class="sidebar-item" data-ctrl="CntrAccrualsType" onclick="loadTable('CntrAccrualsType', this)">
+          <img src="stickers/accruals_type.png" alt="" class="icon sticker-icon"/> Типы начислений
+        </div>
+      </div>
+    </div>
+
+    <div class="main-content">
+      <div class="content-header">
+        <span class="content-title" id="tableTitle">Сотрудники</span>
+        <span class="content-count" id="tableCount">0 записей</span>
+        <div class="content-actions">
+          <button class="btn-refresh" onclick="refreshTable()" title="Обновить">↻</button>
+          <button class="btn-add" onclick="openAddModal()">＋ Добавить</button>
+        </div>
+      </div>
+      <div class="table-wrap" id="tableWrap">
+        <div class="state-msg"><img src="stickers/select2.png" alt="" class="sticker-icon" style="width:48px;height:48px"/>Выберите таблицу в меню слева</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">Добавить запись</div>
+    <div id="modalFields"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="btn-save" onclick="submitAdd()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<div id="notif"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+using System.Text.RegularExpressions;
+namespace MyAPP.Common;
+
+public class AccrualsType
+{
+    private const int NameLen = 100;
+    private const string NamePattern = @"^[А-ЯЁа-яёA-Za-z0-9][А-ЯЁа-яёA-Za-z0-9\s\%\.\,\-\/\(\)]+$";
+    private string _name = string.Empty;
+    public int AccrualsTypeID { get; set; }
+    public string Name
+    {
+        get
+        {
+            return _name;
+        }
+        set
+        {
+            if (value.Length > NameLen)
+            {
+                throw new ArgumentException($"Name must be shorten than {NameLen}!");
+            }
+            else
+            {
+                if (Regex.IsMatch(value, NamePattern))
+                {
+                    _name = value;
+                }
+                else
+                {
+                    throw new ArgumentException($"Name format error!");
+                }
+            }
+        }
+    }
+    public int position { get; set; }
+}
